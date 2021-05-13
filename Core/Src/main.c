@@ -49,7 +49,10 @@ char TxDataBuffer[32] =
 char RxDataBuffer[32] =
 { 0 };
 uint16_t STATE_Display = 0;
-
+uint16_t freq = 1;
+float halftime = 500;
+uint16_t blink = 1;
+uint16_t on = 1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,8 +107,6 @@ int main(void)
 	  StateNo_0 = 30,
 	  StateMenuNo_1 = 40,
 	  StateNo_1 = 50
-
-
   };
   {
 	  //char temp[] = "This simulation is ready wait for key.\r\n";
@@ -119,20 +120,20 @@ int main(void)
   while (1)
   {//polling
 	  //UARTRecieveAndResponsePolling();
-	  HAL_UART_Receive_IT(&huart2,  (uint8_t*)RxDataBuffer, 4);
+	  HAL_UART_Receive_IT(&huart2,  (uint8_t*)RxDataBuffer, 32);
 	  	  int16_t inputchar = UARTRecieveIT();
 	  	  if(inputchar!=-1)
 	  	  {
 	  	  	sprintf(TxDataBuffer, "ReceivedChar:[%c]\r\n", inputchar);
-	  	  	HAL_UART_Transmit_IT(&huart2, (uint8_t*)TxDataBuffer, strlen(TxDataBuffer));
+	  	  	HAL_UART_Transmit(&huart2, (uint8_t*)TxDataBuffer, strlen(TxDataBuffer),1000);
 	  	  }
 	  switch(STATE_Display){
-	  case StateDisplay_start:
-		  {char mode[] ="Please select Mode.\r\n [0] : LED Control\r\n [1] : button Status\r\n";
-		  HAL_UART_Transmit_IT(&huart2, (uint8_t*) mode,strlen(mode));}
+	  case StateDisplay_start://0
+		  sprintf(TxDataBuffer, "Please select Mode.\r\n [0] : LED Control\r\n [1] : button Status\r\n");
+		  HAL_UART_Transmit(&huart2, (uint8_t*)TxDataBuffer, strlen(TxDataBuffer),1000);
 	  	  STATE_Display = StateMode;
 	  	  break;
-	  case StateMode:
+	  case StateMode://10
 		  switch(inputchar){
 		  case 0:
 			  break;
@@ -148,20 +149,41 @@ int main(void)
 			  break;
 		  }
 		  break;
-	  case StateMenuNo_0:
-		  {char mode0[] = "Mode0\r\n [a] : LED Speed Up 1 Hz\r\n [s] : LED Speed Down 1 Hz\r\n [d] : TurnOn/TurnOff LED\r\n [x] : back\r\n";
-		  HAL_UART_Transmit_IT(&huart2, (uint8_t*) mode0,strlen(mode0));}
+	  case StateMenuNo_0://20
+		  sprintf(TxDataBuffer,"Mode0\r\n[a]:+1Hz\r\n[s]:-1Hz\r\n[d]:On/Off\r\n[x]:back\r\n");
+		  HAL_UART_Transmit(&huart2, (uint8_t*)TxDataBuffer, strlen(TxDataBuffer),1000);
 		  STATE_Display = StateNo_0;
 		  break;
-	  case StateNo_0:
+	  case StateNo_0://30
 		  switch(inputchar){
 		  		  		  case 0:
 		  		  			  break;
 		  		  		  case 'a':
+		  		  			  freq+=1;
+		  		  			  halftime=500/freq;
+		  		  			  blink=1;
 		  		  			  break;
 		  		  		  case 's':
+		  		  			  freq-=1;
+		  		  			  if(freq<=0)
+		  		  			  {
+		  		  				  freq=0;
+		  		  				  blink=0;
+		  		  			  }
+		  		  			  else if(freq>0){
+		  		  			  halftime=500/freq;}
 		  		  			  break;
 		  		  		  case 'd':
+		  		  			  if(blink==1)
+		  		  			  {
+		  		  				  blink=0;
+		  		  				  on = 0;
+		  		  			  }
+		  		  			  else if(blink==0)
+		  		  			  {
+		  		  				  blink=1;
+		  		  				  on = 1;
+		  		  			  }
 		  		  			  break;
 		  		  		  case 'x':
 		  		  			  STATE_Display = StateDisplay_start;
@@ -172,12 +194,12 @@ int main(void)
 		  		  			  //break;
 		  		  		  }
 		  		  		  break;
-	  case StateMenuNo_1:
-	  	  {char mode1[] = "Mode1\r\n [x] : back\r\n";
-	  	  HAL_UART_Transmit_IT(&huart2, (uint8_t*) mode1,strlen(mode1));}
+	  case StateMenuNo_1://40
+		  sprintf(TxDataBuffer, "Mode1\r\n [x] : back\r\n");
+		  HAL_UART_Transmit(&huart2, (uint8_t*)TxDataBuffer, strlen(TxDataBuffer),1000);
 	  	  STATE_Display = StateNo_1;
 	  	  break;
-	  case StateNo_1:
+	  case StateNo_1://50
 		  switch(inputchar){
 		  case 0:
 			  break;
@@ -185,11 +207,20 @@ int main(void)
 			  STATE_Display = StateDisplay_start;
 			  break;
 		  }
-
+		  break;
 	  }
+	  if(blink == 0&on==1)
+	  	  {
+	  		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
+	  	  }
+	  else if (blink == 0&on==0)
+	  {
+		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin,0);
+	  }
+	  else if(blink == 1){
+		  HAL_Delay(halftime);
+		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);}
 
-	  HAL_Delay(100);
-	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
