@@ -48,6 +48,8 @@ char TxDataBuffer[32] =
 { 0 };
 char RxDataBuffer[32] =
 { 0 };
+uint16_t STATE_Display = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,9 +96,20 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  enum _StateDisplay
   {
-	  char temp[] = "Hello\r\n wow\r\n its good\r\n";
-	  HAL_UART_Transmit_IT(&huart2, (uint8_t*) temp,strlen(temp));
+	  StateDisplay_start =0,
+	  StateMode = 10,
+	  StateMenuNo_0 = 20,
+	  StateNo_0 = 30,
+	  StateMenuNo_1 = 40,
+	  StateNo_1 = 50
+
+
+  };
+  {
+	  //char temp[] = "This simulation is ready wait for key.\r\n";
+	  //HAL_UART_Transmit_IT(&huart2, (uint8_t*) temp,strlen(temp));
 	  //HAL_UART_Transmit(&huart2, (uint8_t*) temp,strlen(temp),10);
   }
   /* USER CODE END 2 */
@@ -106,15 +119,61 @@ int main(void)
   while (1)
   {//polling
 	  //UARTRecieveAndResponsePolling();
-	  //HAL_UART_Receive_IT(&huart2,  (uint8_t*)RxDataBuffer, 4);
-	  int16_t inputchar = UARTRecieveIT();
-	  if(inputchar!=-1)
-	  {
-
-	  	sprintf(TxDataBuffer, "ReceivedChar:[%c]\r\n", inputchar);
-	  	HAL_UART_Transmit(&huart2, (uint8_t*)TxDataBuffer, strlen(TxDataBuffer), 1000);
-	  }
 	  HAL_UART_Receive_IT(&huart2,  (uint8_t*)RxDataBuffer, 4);
+	  	  int16_t inputchar = UARTRecieveIT();
+	  	  if(inputchar!=-1)
+	  	  {
+	  	  	sprintf(TxDataBuffer, "ReceivedChar:[%c]\r\n", inputchar);
+	  	  	HAL_UART_Transmit_IT(&huart2, (uint8_t*)TxDataBuffer, strlen(TxDataBuffer));
+	  	  }
+	  switch(STATE_Display){
+	  case StateDisplay_start:
+		  {char mode[] ="Please select Mode.\r\n [0] : LED Control\r\n [1] : button Status\r\n";
+		  HAL_UART_Transmit_IT(&huart2, (uint8_t*) mode,strlen(mode));}
+	  	  STATE_Display = StateMode;
+	  	  break;
+	  case StateMode:
+		  switch(inputchar){
+		  case 0:
+			  break;
+		  case '0':
+			  STATE_Display = StateMenuNo_0;
+			  break;
+		  case '1':
+			  STATE_Display = StateMenuNo_1;
+			  break;
+		  //default:
+			  //{char error[] = "Incorrect Input\r\n";
+			  //HAL_UART_Transmit_IT(&huart2, (uint8_t*) error,strlen(error));}
+			  break;
+		  }
+		  break;
+	  case StateMenuNo_0:
+		  {char mode0[] = "Mode0\r\n [a] : LED Speed Up 1 Hz\r\n [s] : LED Speed Down 1 Hz\r\n [d] : TurnOn/TurnOff LED\r\n [x] : back\r\n";
+		  HAL_UART_Transmit_IT(&huart2, (uint8_t*) mode0,strlen(mode0));}
+		  STATE_Display = StateNo_0;
+		  break;
+	  case StateNo_0:
+		  switch(inputchar){
+		  		  		  case 0:
+		  		  			  break;
+		  		  		  case 'a':
+		  		  			  break;
+		  		  		  case 's':
+		  		  			  break;
+		  		  		  case 'd':
+		  		  			  break;
+		  		  		  case 'x':
+		  		  			  STATE_Display = StateDisplay_start;
+		  		  			  break;
+		  		  		  //default:
+		  		  			  //{char error[] = "Incorrect Input\r\n";
+		  		  			  //HAL_UART_Transmit_IT(&huart2, (uint8_t*) error,strlen(error));}
+		  		  			  //break;
+		  		  		  }
+		  		  		  break;
+	  }
+
 	  HAL_Delay(100);
 	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
     /* USER CODE END WHILE */
