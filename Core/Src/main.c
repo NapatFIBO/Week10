@@ -53,6 +53,7 @@ uint16_t freq = 1;
 float halftime = 500;
 uint16_t blink = 1;
 uint16_t on = 1;
+uint16_t button[2] = {};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -118,8 +119,8 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {//polling
-	  //UARTRecieveAndResponsePolling();
+  {
+	  button[0] = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
 	  HAL_UART_Receive_IT(&huart2,  (uint8_t*)RxDataBuffer, 32);
 	  	  int16_t inputchar = UARTRecieveIT();
 	  	  if(inputchar!=-1)
@@ -129,7 +130,7 @@ int main(void)
 	  	  }
 	  switch(STATE_Display){
 	  case StateDisplay_start://0
-		  sprintf(TxDataBuffer, "Please select Mode.\r\n [0] : LED Control\r\n [1] : button Status\r\n");
+		  sprintf(TxDataBuffer, "Please select Mode.\r\n[0]:LED Control\r\n[1]:button Status\r\n");
 		  HAL_UART_Transmit(&huart2, (uint8_t*)TxDataBuffer, strlen(TxDataBuffer),1000);
 	  	  STATE_Display = StateMode;
 	  	  break;
@@ -200,6 +201,16 @@ int main(void)
 	  	  STATE_Display = StateNo_1;
 	  	  break;
 	  case StateNo_1://50
+		  if(button[0]==0&button[1]==1)
+		  {
+			  sprintf(TxDataBuffer, "button press\r\n");
+			  HAL_UART_Transmit(&huart2, (uint8_t*)TxDataBuffer, strlen(TxDataBuffer),1000);
+		  }
+		  else if (button[0]==1&button[1]==0)
+		  {
+			  sprintf(TxDataBuffer, "button unpress\r\n");
+			  HAL_UART_Transmit(&huart2, (uint8_t*)TxDataBuffer, strlen(TxDataBuffer),1000);
+		  }
 		  switch(inputchar){
 		  case 0:
 			  break;
@@ -220,7 +231,7 @@ int main(void)
 	  else if(blink == 1){
 		  HAL_Delay(halftime);
 		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);}
-
+	  button[1]=button[0];
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
