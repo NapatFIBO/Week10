@@ -172,6 +172,20 @@ int main(void)
 		  		  			  //break;
 		  		  		  }
 		  		  		  break;
+	  case StateMenuNo_1:
+	  	  {char mode1[] = "Mode1\r\n [x] : back\r\n";
+	  	  HAL_UART_Transmit_IT(&huart2, (uint8_t*) mode1,strlen(mode1));}
+	  	  STATE_Display = StateNo_1;
+	  	  break;
+	  case StateNo_1:
+		  switch(inputchar){
+		  case 0:
+			  break;
+		  case 'x':
+			  STATE_Display = StateDisplay_start;
+			  break;
+		  }
+
 	  }
 
 	  HAL_Delay(100);
