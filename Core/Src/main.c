@@ -121,7 +121,7 @@ int main(void)
   while (1)
   {
 	  button[0] = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
-	  HAL_UART_Receive_IT(&huart2,  (uint8_t*)RxDataBuffer, 32);
+	  HAL_UART_Receive_IT(&huart2,  (uint8_t*)RxDataBuffer, 4);
 	  	  int16_t inputchar = UARTRecieveIT();
 	  	  if(inputchar!=-1)
 	  	  {
@@ -144,10 +144,6 @@ int main(void)
 		  case '1':
 			  STATE_Display = StateMenuNo_1;
 			  break;
-		  //default:
-			  //{char error[] = "Incorrect Input\r\n";
-			  //HAL_UART_Transmit_IT(&huart2, (uint8_t*) error,strlen(error));}
-			  break;
 		  }
 		  break;
 	  case StateMenuNo_0://20
@@ -160,11 +156,13 @@ int main(void)
 		  		  		  case 0:
 		  		  			  break;
 		  		  		  case 'a':
+		  		  			  if(on==1){
 		  		  			  freq+=1;
 		  		  			  halftime=500/freq;
-		  		  			  blink=1;
+		  		  			  blink=1;}
 		  		  			  break;
 		  		  		  case 's':
+		  		  			  if(on==1){
 		  		  			  freq-=1;
 		  		  			  if(freq<=0)
 		  		  			  {
@@ -172,7 +170,7 @@ int main(void)
 		  		  				  blink=0;
 		  		  			  }
 		  		  			  else if(freq>0){
-		  		  			  halftime=500/freq;}
+		  		  			  halftime=500/freq;}}
 		  		  			  break;
 		  		  		  case 'd':
 		  		  			  if(blink==1)
@@ -189,10 +187,6 @@ int main(void)
 		  		  		  case 'x':
 		  		  			  STATE_Display = StateDisplay_start;
 		  		  			  break;
-		  		  		  //default:
-		  		  			  //{char error[] = "Incorrect Input\r\n";
-		  		  			  //HAL_UART_Transmit_IT(&huart2, (uint8_t*) error,strlen(error));}
-		  		  			  //break;
 		  		  		  }
 		  		  		  break;
 	  case StateMenuNo_1://40
