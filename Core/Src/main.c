@@ -54,6 +54,7 @@ float halftime = 500;
 uint16_t blink = 1;
 uint16_t on = 1;
 uint16_t button[2] = {};
+uint16_t count = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -136,14 +137,23 @@ int main(void)
 	  	  break;
 	  case StateMode://10
 		  switch(inputchar){
-		  case 0:
+		  case -1:
 			  break;
 		  case '0':
+			  count = 0;
 			  STATE_Display = StateMenuNo_0;
 			  break;
 		  case '1':
+			  count = 0;
 			  STATE_Display = StateMenuNo_1;
 			  break;
+		  default:
+			  count+=1;
+			  if(count==2)
+			  {
+				  count=0;
+				  STATE_Display = StateDisplay_start;
+			  }
 		  }
 		  break;
 	  case StateMenuNo_0://20
@@ -153,7 +163,7 @@ int main(void)
 		  break;
 	  case StateNo_0://30
 		  switch(inputchar){
-		  		  		  case 0:
+		  		  		  case -1:
 		  		  			  break;
 		  		  		  case 'a':
 		  		  			  if(on==1){
@@ -185,8 +195,16 @@ int main(void)
 		  		  			  }
 		  		  			  break;
 		  		  		  case 'x':
+		  		  			  count = 0;
 		  		  			  STATE_Display = StateDisplay_start;
 		  		  			  break;
+		  				  default:
+		  					  count+=1;
+		  					  if(count==2)
+		  					  {
+		  						  count = 0;
+		  						  STATE_Display = StateMenuNo_0;
+		  					  }
 		  		  		  }
 		  		  		  break;
 	  case StateMenuNo_1://40
@@ -205,12 +223,21 @@ int main(void)
 			  sprintf(TxDataBuffer, "button unpress\r\n");
 			  HAL_UART_Transmit(&huart2, (uint8_t*)TxDataBuffer, strlen(TxDataBuffer),1000);
 		  }
-		  switch(inputchar){
-		  case 0:
+		  switch(inputchar)
+		  {
+		  case -1:
 			  break;
 		  case 'x':
+			  count = 0;
 			  STATE_Display = StateDisplay_start;
 			  break;
+		  default:
+			  count+=1;
+			  if(count==2)
+			  {
+				  count = 0;
+				  STATE_Display = StateMenuNo_1;
+			  }
 		  }
 		  break;
 	  }
